@@ -73,7 +73,7 @@ export const syncUserFromClerk = async (req, res) => {
 export const applyForJob = async (req, res) => {
   try {
     console.log("api call");
-    const { userId } = req.auth;
+    const { userId } = req.auth();
     const { jobId } = req.body;
     console.log("Creating application:", { userId, jobId });
 
