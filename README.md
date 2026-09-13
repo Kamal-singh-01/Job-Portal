@@ -1,103 +1,100 @@
-##. Job Portal Website
+## 🚀 Job Portal Website
 
-A full-stack MEARN (MongoDB, Express, React, Node.js) job portal where recruiters can post jobs and applicants can apply by uploading their resumes.
-The app features authentication with Clerk, styling with Tailwind CSS, and file storage on Cloudinary.
+A full-stack **MERN (MongoDB, Express.js, React.js, Node.js)** job portal where recruiters can post and manage jobs, while job seekers can search and apply for jobs by uploading their resumes.
 
-🚀 Features
+The application features authentication with Clerk, responsive styling with Tailwind CSS, resume storage with Cloudinary, and an AI-powered chatbot using Google Gemini to assist users with job searches, career questions, and interview preparation.
 
-🔐 Authentication & Authorization – Powered by Clerk
+---
 
-🎨 Responsive UI – Built with Tailwind CSS
+## 🚀 Features
 
-🗄️ Database – MongoDB Atlas
- for scalable cloud data storage
+### 🔐 Authentication & Authorization
+- User authentication and authorization powered by Clerk
+- Separate recruiter and job seeker functionality
 
-☁️ Resume Uploads – Stored securely on Cloudinary
+### 🎨 Responsive UI
+- Modern and responsive interface
+- Built with Tailwind CSS
+- Optimized for desktop and mobile devices
 
-👨‍💼 Recruiter Role – Create, manage, and view job listings
+### 🗄️ Database
+- MongoDB Atlas for scalable cloud data storage
+- Stores users, companies, jobs, and job applications
 
-👩‍💻 Job Seeker Role – Apply to jobs and upload resumes
+### ☁️ Resume Uploads
+- Resume uploads handled securely using Cloudinary
+- Recruiters can access applicant resumes
 
-🔎 Job Search – Search and filter job postings easily
+### 👨‍💼 Recruiter Features
+- Create and publish job listings
+- Manage existing job postings
+- View job applications
+- Review applicant information and resumes
 
-🛠️ Tech Stack
+### 👩‍💻 Job Seeker Features
+- Browse available jobs
+- Search and filter job postings
+- View detailed job information
+- Apply for jobs
+- Upload resumes while applying
 
-Frontend:
+### 🔎 Job Search
+- Search jobs by title
+- Filter jobs based on location, category, and other job attributes
+- Displays real-time job listings from MongoDB
 
-React.js
+### 🤖 AI-Powered Job Assistant
+- Integrated AI chatbot powered by **Google Gemini**
+- Helps users search for relevant job opportunities using natural language
+- Understands queries such as:
+  - "Show me React jobs"
+  - "Find programming jobs in Delhi"
+  - "Show me senior developer jobs"
+- Uses conversation history to maintain context during conversations
+- Connects with MongoDB to retrieve real job listings
+- Uses actual job data from the database instead of generating fake job information
+- Provides career guidance and interview preparation assistance
+- Returns relevant job information including:
+  - Job title
+  - Company
+  - Location
+  - Job level
+  - Salary
+- Users can view specific jobs directly from chatbot results
+- Job results are linked to their corresponding MongoDB job IDs
 
-Tailwind CSS
+---
 
-Clerk (for authentication)
+## 🛠️ Tech Stack
 
-Backend:
+### Frontend
+- React.js
+- Tailwind CSS
+- Clerk
+- React Router
+- Vite
 
-Node.js
+### Backend
+- Node.js
+- Express.js
+- Google Gemini API
 
-Express.js
+### Database & Storage
+- MongoDB Atlas
+- Cloudinary
 
-Database & Storage:
+### AI
+- Google Gemini
+- Gemini-powered conversational job assistant
+- Natural language job search
+- Conversation history
 
-MongoDB Atlas
+---
 
-Cloudinary
+## ⚙️ Installation & Setup
 
-⚙️ Installation & Setup
+### 1. Clone the repository
 
-Clone the repository
-
+```bash
 git clone https://github.com/your-username/job-portal.git
 cd job-portal
-
-
-Install dependencies (for both client & server)
-
-cd client
-npm install
-cd ../server
-npm install
-
-
-Environment Variables
-Create a .env file in the server folder with:
-
-MONGO_URI=your_mongodb_atlas_connection
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-CLERK_SECRET_KEY=your_clerk_secret_key
-
-
-And in client (Vite or CRA depending on your setup):
-
-VITE_BACKEND_URL=http://localhost:5000
-VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-
-
--- Run the backend
-
-cd server
-npm run dev
-
-
--- Run the frontend
-
-cd client
-npm run dev
-
-
-📦 Deployment
-
-Frontend: Vercel / Netlify
-
-Backend:  Netlify
-
-Database: MongoDB Atlas
-
-Media Storage: Cloudinary
-
-🤝 Contributing
-
-Contributions, issues, and feature requests are welcome!
-Feel free to fork the repo and submit a PR.
