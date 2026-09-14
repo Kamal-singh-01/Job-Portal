@@ -72,42 +72,142 @@ export const syncUserFromClerk = async (req, res) => {
 // applyForJob.js
 export const applyForJob = async (req, res) => {
   try {
-    console.log("api call");
+
     const { userId } = req.auth();
     const { jobId } = req.body;
-    console.log("Creating application:", { userId, jobId });
 
+    console.log("Creating application:", {
+      userId,
+      jobId
+    });
 
-    if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
-    if (!jobId) return res.status(400).json({ success: false, message: "jobId is required" });
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized"
+      });
+    }
+
+    if (!jobId) {
+      return res.status(400).json({
+        success: false,
+        message: "jobId is required"
+      });
+    }
 
     const job = await Job.findById(jobId);
-    if (!job) return res.status(404).json({ success: false, message: "Job not found" });
 
-    // ✅ Ensure both fields are checked
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found"
+      });
+    }
+
+    // Check if user already applied
     const existingApplication = await JobApplication.findOne({
       userId: userId.toString(),
       jobId: jobId.toString(),
     });
 
     if (existingApplication) {
-      return res.status(400).json({ success: false, message: "Already applied to this job" });
+      return res.status(400).json({
+        success: false,
+        message: "Already applied to this job"
+      });
     }
 
+    // Get resume selected by the user
+    let resume = null;
+
+    // If user uploaded a new resume
+    // if (req.file) {
+
+    //   const resumeUpload = await cloudinary.uploader.upload(
+    //     req.file.path,
+    //     {
+    //       resource_type: "auto"
+    //     }
+    //   );
+
+    //   resume = resumeUpload.secure_url;
+
+    // } else {
+
+    //   // Otherwise use existing profile resume
+    //   const user = await User.findById(userId);
+
+    //   if (!user || !user.resume) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: "Please upload a resume before applying"
+    //     });
+    //   }
+
+    //   resume = user.resume;
+    // }
+
+   if (req.file) {
+
+  console.log("🔥 NEW RESUME RECEIVED");
+  console.log("File name:", req.file.originalname);
+  console.log("File path:", req.file.path);
+
+  const resumeUpload = await cloudinary.uploader.upload(
+    req.file.path,
+    {
+      resource_type: "auto"
+    }
+  );
+
+  resume = resumeUpload.secure_url;
+
+  console.log("🔥 NEW RESUME URL:", resume);
+
+} else {
+
+  console.log("📄 NO NEW RESUME - USING PROFILE RESUME");
+
+  const user = await User.findById(userId);
+
+  if (!user || !user.resume) {
+    return res.status(400).json({
+      success: false,
+      message: "Please upload a resume before applying"
+    });
+  }
+
+  resume = user.resume;
+
+  console.log("📄 OLD RESUME URL:", resume);
+}
+
+    // Create application
     await JobApplication.create({
       userId: userId.toString(),
       jobId: jobId.toString(),
       companyId: job.companyId,
+      resume: resume,
       status: "pending",
       date: Date.now(),
     });
 
-    res.status(200).json({ success: true, message: "Job applied successfully" });
+    res.status(200).json({
+      success: true,
+      message: "Job applied successfully",
+      resume
+    });
+
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+
+    console.error("applyForJob error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };
-
 
 
 // Get user job applications
