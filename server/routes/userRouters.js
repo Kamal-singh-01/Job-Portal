@@ -15,7 +15,7 @@ const router = express.Router();
 router.get("/user", requireAuth, getUserData);
 // Temporarily remove requireAuth from sync route
 router.get("/sync", syncUserFromClerk);
-router.post("/apply",applyForJob);
+router.post( "/apply", upload.single("resume"), applyForJob );
 router.get("/applications", getUserJobApplication);
 // Use multer middleware to handle single file upload with field name 'resume'
 // Temporarily disable requireAuth due to Clerk session issues; controller validates token from header

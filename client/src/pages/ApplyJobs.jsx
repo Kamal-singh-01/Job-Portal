@@ -24,6 +24,10 @@ const ApplyJobs = () => {
   const { backendUrl, userData, userDataApplications, fetchUserApplication } = useContext(AppContext);
   const { getToken } = useAuth();
 
+  const [showResumeOptions, setShowResumeOptions] = useState(false);
+const [selectedResume, setSelectedResume] = useState("existing");
+const [newResume, setNewResume] = useState(null);
+
   const fetchJob = async () => {
     try {
       setLoading(true);
@@ -52,39 +56,100 @@ const ApplyJobs = () => {
     }
   };
 
-  const applyHandler = async () => {
-    try {
-      if (!userData) return toast.error("Login to apply for a job");
-      if (!userData.resume) {
-        navigate("/application");
-        return toast.error("Upload resume to apply");
+ 
+const applyHandler = async () => {
+
+  try {
+
+    if (!userData) {
+      return toast.error("Login to apply for a job");
+    }
+
+    // If user doesn't have an existing resume,
+    // automatically ask them to upload a new one.
+    if (!userData.resume) {
+      setSelectedResume("new");
+      setShowResumeOptions(true);
+      return;
+    }
+
+    // Show resume selection popup
+    setShowResumeOptions(true);
+
+  } catch (err) {
+
+    toast.error(
+      err.response?.data?.message ||
+      err.message ||
+      "Something went wrong"
+    );
+
+  }
+};
+
+const submitApplication = async () => {
+
+  try {
+
+    if (selectedResume === "new" && !newResume) {
+      return toast.error("Please select a resume");
+    }
+
+    setApplyLoading(true);
+
+    const token = await getToken();
+
+    if (!token) {
+      setApplyLoading(false);
+      return toast.error("Not authenticated");
+    }
+
+    const formData = new FormData();
+
+    formData.append("jobId", jobdata._id);
+
+    // Only send a file if user selected a new resume
+    if (selectedResume === "new") {
+      formData.append("resume", newResume);
+    }
+
+    const { data } = await axios.post(
+      `${backendUrl}/api/users/apply`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       }
+    );
 
-      setApplyLoading(true); // ✅ start loading for apply button
+    if (data.success) {
 
-      const token = await getToken();
-      if (!token) {
-        setApplyLoading(false);
-        return toast.error("Not authenticated");
-      }
-
-      const { data } = await axios.post(
-        `${backendUrl}/api/users/apply`,
-        { jobId: jobdata._id },
-        { headers: { Authorization: `Bearer ${token}` } }
+      toast.success(
+        data.message || "Applied successfully"
       );
 
-      if (data.success) {
-        toast.success(data.message || "Applied successfully");
-        setIsApplied(true);
-        fetchUserApplication(); // update applications list
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || err.message || "Something went wrong");
-    } finally {
-      setApplyLoading(false); // ✅ stop loading
+      setIsApplied(true);
+      setShowResumeOptions(false);
+      setNewResume(null);
+
+      fetchUserApplication();
     }
-  };
+
+  } catch (err) {
+
+    toast.error(
+      err.response?.data?.message ||
+      err.message ||
+      "Something went wrong"
+    );
+
+  } finally {
+
+    setApplyLoading(false);
+
+  }
+};
 
   const checkAlreadyApplied = () => {
     const hasApplied = userDataApplications.some((item) => item.jobId._id === jobdata._id);
@@ -186,6 +251,150 @@ const ApplyJobs = () => {
           </div>
         </div>
       </div>
+
+    
+{showResumeOptions && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+
+    <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+
+      <h2 className="text-2xl font-semibold text-gray-800">
+        Choose Your Resume
+      </h2>
+
+      <p className="text-gray-500 text-sm mt-1 mb-6">
+        Select the resume you want to use for this application.
+      </p>
+
+
+      {/* Existing Resume */}
+      {userData?.resume && (
+        <div
+          onClick={() => {
+            setSelectedResume("existing");
+            setNewResume(null);
+          }}
+          className={`border rounded-lg p-4 cursor-pointer mb-4 ${
+            selectedResume === "existing"
+              ? "border-blue-600 bg-blue-50"
+              : "border-gray-300"
+          }`}
+        >
+
+          <div className="flex items-center gap-3">
+
+            <div className="text-2xl">
+              📄
+            </div>
+
+            <div>
+
+              <h3 className="font-medium">
+                Continue Existing Resume
+              </h3>
+
+              <p className="text-sm text-gray-500">
+                Use your profile resume
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
+
+      {/* New Resume */}
+      <div
+        onClick={() => setSelectedResume("new")}
+        className={`border rounded-lg p-4 cursor-pointer ${
+          selectedResume === "new"
+            ? "border-blue-600 bg-blue-50"
+            : "border-gray-300"
+        }`}
+      >
+
+        <div className="flex items-center gap-3">
+
+          <div className="text-2xl">
+            📤
+          </div>
+
+          <div>
+
+            <h3 className="font-medium">
+              Upload New Resume
+            </h3>
+
+            <p className="text-sm text-gray-500">
+              Use a different resume for this job
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      {/* File Input */}
+      {selectedResume === "new" && (
+        <div className="mt-4">
+
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={(e) => {
+              setNewResume(e.target.files[0]);
+            }}
+            className="w-full border rounded-lg p-2"
+          />
+
+          {newResume && (
+            <p className="text-sm text-green-600 mt-2">
+              Selected: {newResume.name}
+            </p>
+          )}
+
+        </div>
+      )}
+
+
+      {/* Buttons */}
+      <div className="flex justify-end gap-3 mt-6">
+
+        <button
+          onClick={() => {
+            setShowResumeOptions(false);
+            setNewResume(null);
+          }}
+          disabled={applyLoading}
+          className="px-5 py-2 border rounded-lg"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={submitApplication}
+          disabled={applyLoading}
+          className="px-5 py-2 bg-blue-600 text-white rounded-lg"
+        >
+
+          {applyLoading
+            ? "Applying..."
+            : "Continue & Apply"}
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+)}
+
+
       <Footer />
     </>
   );
