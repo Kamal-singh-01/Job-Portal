@@ -12,6 +12,7 @@ import jobRouters from './routes/jobRoutes.js';
 import userRouters from './routes/userRouters.js';
 import { clerkMiddleware } from '@clerk/express';
 import chatRoutes from "./routes/chatRoutes.js";
+import resumeRoutes from "./routes/resumeRoutes.js";
 
 const app = express();
 
@@ -69,7 +70,9 @@ app.use('/api/company', companyRoutes);
 app.use('/api/jobs', jobRouters);
 app.use('/api/users', userRouters);
 
-app.use("/api/chat", chatRoutes);
+app.use("/api/chat", chatRoutes); 
+
+app.use("/api/resume", resumeRoutes);
 
 // Basic routes
 app.get('/', (req, res) => res.send('Api working'));

@@ -23,10 +23,9 @@ export const chatWithGemini = async (req, res) => {
         }
 
 
-        // --------------------------------
-        // STEP 1: Give Gemini the conversation
-        // --------------------------------
-
+      
+        //  Give Gemini the conversation
+        
         const conversation = history
             .filter(
                 (item) =>
@@ -39,10 +38,10 @@ export const chatWithGemini = async (req, res) => {
             .join("\n");
 
 
-        // --------------------------------
-        // STEP 2: Ask Gemini to understand
+       
+        // Ask Gemini to understand
         // what the user is looking for
-        // --------------------------------
+       
 
         const filterPrompt = `
 You are a job search assistant.
@@ -121,10 +120,10 @@ ${message}
         }
 
 
-        // --------------------------------
-        // STEP 3: If this isn't a job search,
+      
+        //  If this isn't a job search,
         // use normal Gemini conversation
-        // --------------------------------
+        
 
         if (!filters.isJobSearch) {
 
@@ -169,9 +168,9 @@ ${message}
         }
 
 
-        // --------------------------------
-        // STEP 4: Build MongoDB query
-        // --------------------------------
+        
+        //  Build MongoDB query
+     
 
         const query = {
             visible: true
@@ -220,9 +219,9 @@ ${message}
         }
 
 
-        // --------------------------------
-        // STEP 5: Search MongoDB
-        // --------------------------------
+       
+        // Search MongoDB
+      
 
         const jobs = await Job.find(query)
             .populate({
@@ -232,9 +231,9 @@ ${message}
             .limit(10);
 
 
-        // --------------------------------
-        // STEP 6: No jobs found
-        // --------------------------------
+      
+        // No jobs found
+        
 
         if (jobs.length === 0) {
 
@@ -245,9 +244,9 @@ ${message}
         }
 
 
-        // --------------------------------
-        // STEP 7: Give real jobs to Gemini
-        // --------------------------------
+       
+        //  Give real jobs to Gemini
+     
 
         const jobData = jobs.map((job) => ({
             id: job._id,
