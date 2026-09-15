@@ -62,3 +62,95 @@ Rules:
   }
 };
 
+export const analyzeJobMatchWithGemini = async (
+  parsedResume,
+  jobDescription
+) => {
+  try {
+    const prompt = `
+You are an expert ATS resume and job matching system.
+
+Compare the candidate's parsed resume with the job description.
+
+IMPORTANT:
+- Evaluate only information actually present in the resume.
+- Do not invent candidate experience or skills.
+- Identify skills that are clearly relevant to the job.
+- Missing skills should be skills required or strongly preferred by the job that are not present in the resume.
+- Give a realistic match score from 0 to 100.
+- Return ONLY valid JSON.
+- Do not include markdown or code fences.
+
+CANDIDATE RESUME:
+----------------
+${JSON.stringify(parsedResume, null, 2)}
+----------------
+
+JOB DESCRIPTION:
+----------------
+${jobDescription}
+----------------
+
+Return exactly this JSON structure:
+
+{
+  "matchScore": 0,
+  "matchedSkills": [],
+  "missingSkills": [],
+  "strengths": [],
+  "recommendations": []
+}
+
+Rules:
+
+1. matchScore:
+   - Integer between 0 and 100.
+   - 90-100 = Excellent match
+   - 75-89 = Strong match
+   - 60-74 = Moderate match
+   - 40-59 = Weak match
+   - 0-39 = Poor match
+
+2. matchedSkills:
+   - Skills from the resume that match the job requirements.
+   - Return individual skill names.
+
+3. missingSkills:
+   - Important job requirements not found in the resume.
+   - Do not mark unrelated skills as missing.
+
+4. strengths:
+   - 3 to 5 concise points explaining why the candidate is suitable.
+
+5. recommendations:
+   - 3 to 5 practical suggestions for improving the candidate's fit.
+   - Do not suggest claiming experience the candidate does not have.
+`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.6-flash",
+      contents: prompt,
+    });
+
+    let text = response.text;
+
+    console.log("Gemini job match response:");
+    console.log(text);
+
+    text = text
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
+    return JSON.parse(text);
+
+  } catch (error) {
+    console.error("========== GEMINI JOB MATCH ERROR ==========");
+    console.error(error);
+    console.error("============================================");
+
+    throw new Error(
+      error.message || "Failed to analyze job match using Gemini"
+    );
+  }
+};
