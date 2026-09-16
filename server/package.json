@@ -15,7 +15,6 @@
     "@clerk/clerk-sdk-node": "^4.13.23",
     "@clerk/express": "^1.7.29",
     "@google/genai": "^2.22.0",
-    "@napi-rs/canvas": "^1.0.9",
     "@sentry/node": "^10.9.0",
     "@sentry/profiling-node": "^10.9.0",
     "bcrypt": "^6.0.0",
