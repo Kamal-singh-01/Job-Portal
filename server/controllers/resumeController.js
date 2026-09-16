@@ -1,5 +1,5 @@
 import fs from "fs";
-import { PDFParse } from "pdf-parse";
+import {PDFParse} from "pdf-parse";
 import {parseResumeWithGemini,analyzeJobMatchWithGemini} from "../services/geminiService.js";
 
 export const parseResume = async (req, res) => {
@@ -14,18 +14,17 @@ export const parseResume = async (req, res) => {
     console.log("Resume received:", req.file.originalname);
 
     // Read uploaded PDF
-    const pdfBuffer = fs.readFileSync(req.file.path);
+  const pdfBuffer = fs.readFileSync(req.file.path);
 
-    // Parse PDF
-    const parser = new PDFParse({
-      data: pdfBuffer,
-    });
+const parser = new PDFParse({
+  data: pdfBuffer,
+});
 
-    const result = await parser.getText();
+const result = await parser.getText();
 
-    const resumeText = result.text;
+const resumeText = result.text;
 
-    await parser.destroy();
+await parser.destroy();
 
     if (!resumeText || !resumeText.trim()) {
       return res.status(400).json({
