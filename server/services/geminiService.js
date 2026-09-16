@@ -66,8 +66,7 @@ export const analyzeJobMatchWithGemini = async (
   parsedResume,
   jobDescription
 ) => {
-  try {
-    const prompt = `
+  const prompt = `
 You are an expert ATS resume and job matching system.
 
 Compare the candidate's parsed resume with the job description.
@@ -105,27 +104,24 @@ Rules:
 
 1. matchScore:
    - Integer between 0 and 100.
-   - 90-100 = Excellent match
-   - 75-89 = Strong match
-   - 60-74 = Moderate match
-   - 40-59 = Weak match
-   - 0-39 = Poor match
 
 2. matchedSkills:
    - Skills from the resume that match the job requirements.
-   - Return individual skill names.
 
 3. missingSkills:
    - Important job requirements not found in the resume.
    - Do not mark unrelated skills as missing.
 
 4. strengths:
-   - 3 to 5 concise points explaining why the candidate is suitable.
+   - 3 to 5 concise points.
 
 5. recommendations:
-   - 3 to 5 practical suggestions for improving the candidate's fit.
+   - 3 to 5 practical suggestions.
    - Do not suggest claiming experience the candidate does not have.
 `;
+
+  try {
+    console.log("Gemini job match: gemini-3.6-flash");
 
     const response = await ai.models.generateContent({
       model: "gemini-3.6-flash",

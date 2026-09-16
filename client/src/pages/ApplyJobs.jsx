@@ -29,6 +29,11 @@ const ApplyJobs = () => {
   const [selectedResume, setSelectedResume] = useState("existing");
   const [newResume, setNewResume] = useState(null);
 
+  const [parsedResume, setParsedResume] = useState(null);
+  const [jobAnalysis, setJobAnalysis] = useState(null);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+
   const fetchJob = async () => {
     try {
       setLoading(true);
@@ -71,19 +76,23 @@ const ApplyJobs = () => {
         return toast.error("Login to apply for a job");
       }
 
-      // If user doesn't have an existing resume,
-      // automatically ask them to upload a new one.
-      if (!userData.resume) {
-        setSelectedResume("new");
-        setShowResumeOptions(true);
+      if (isApplied) {
         return;
       }
 
-      // Show resume selection popup
+      if (!userData.resume) {
+        setSelectedResume("new");
+      } else {
+        setSelectedResume("existing");
+      }
+
       setShowResumeOptions(true);
-    } catch (err) {
+    } catch (error) {
+      console.error("Resume analysis error:", error);
+
       toast.error(
-        err.response?.data?.message || err.message || "Something went wrong",
+        error.response?.data?.message ||
+          "AI analysis is temporarily unavailable. Please try again.",
       );
     }
   };
@@ -99,7 +108,6 @@ const ApplyJobs = () => {
       const token = await getToken();
 
       if (!token) {
-        setApplyLoading(false);
         return toast.error("Not authenticated");
       }
 
@@ -107,7 +115,6 @@ const ApplyJobs = () => {
 
       formData.append("jobId", jobdata._id);
 
-      // Only send a file if user selected a new resume
       if (selectedResume === "new") {
         formData.append("resume", newResume);
       }
@@ -126,14 +133,20 @@ const ApplyJobs = () => {
         toast.success(data.message || "Applied successfully");
 
         setIsApplied(true);
+        setShowAnalysis(false);
         setShowResumeOptions(false);
+
         setNewResume(null);
+        setParsedResume(null);
+        setJobAnalysis(null);
 
         fetchUserApplication();
       }
-    } catch (err) {
+    } catch (error) {
       toast.error(
-        err.response?.data?.message || err.message || "Something went wrong",
+        error.response?.data?.message ||
+          error.message ||
+          "Something went wrong",
       );
     } finally {
       setApplyLoading(false);
@@ -145,6 +158,97 @@ const ApplyJobs = () => {
       (item) => item.jobId._id === jobdata._id,
     );
     setIsApplied(hasApplied);
+  };
+
+  const analyzeResume = async () => {
+    try {
+      if (selectedResume === "new" && !newResume) {
+        return toast.error("Please select a resume");
+      }
+
+      setAnalysisLoading(true);
+
+      const token = await getToken();
+
+      if (!token) {
+        return toast.error("Not authenticated");
+      }
+
+      let resumeData;
+
+      // =========================
+      // NEW RESUME
+      // =========================
+      if (selectedResume === "new") {
+        const formData = new FormData();
+
+        formData.append("resume", newResume);
+
+        const { data } = await axios.post(
+          `${backendUrl}/api/resume/parse`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        if (!data.success) {
+          throw new Error(data.message || "Resume parsing failed");
+        }
+
+        resumeData = data.resume;
+      }
+
+      // =========================
+      // EXISTING RESUME
+      // =========================
+      // We'll handle this separately below.
+      if (selectedResume === "existing") {
+        toast.info("Existing resume analysis will be connected next.");
+        return;
+      }
+
+      setParsedResume(resumeData);
+
+      // =========================
+      // JOB MATCH ANALYSIS
+      // =========================
+
+      const { data: analysisData } = await axios.post(
+        `${backendUrl}/api/resume/job-match`,
+        {
+          parsedResume: resumeData,
+          jobDescription: jobdata.description,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      if (!analysisData.success) {
+        throw new Error(analysisData.message || "Job analysis failed");
+      }
+
+      setJobAnalysis(analysisData.analysis);
+
+      setShowResumeOptions(false);
+      setShowAnalysis(true);
+    } catch (error) {
+      console.error("Resume analysis error:", error);
+
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to analyze resume",
+      );
+    } finally {
+      setAnalysisLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -375,9 +479,142 @@ const ApplyJobs = () => {
               </button>
 
               <button
+                onClick={analyzeResume}
+                disabled={analysisLoading}
+                className="px-5 py-2 bg-blue-600 text-white rounded-lg"
+              >
+                {analysisLoading ? "Analyzing..." : "Analyze Resume"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAnalysis && jobAnalysis && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  AI Job Match Analysis
+                </h2>
+
+                <p className="text-sm text-gray-500 mt-1">
+                  How well your resume matches this job
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowAnalysis(false)}
+                className="text-gray-500 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Match Score */}
+            <div className="flex flex-col items-center mb-8">
+              <div className="w-32 h-32 rounded-full border-8 border-blue-500 flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-4xl font-bold text-blue-600">
+                    {jobAnalysis.matchScore}%
+                  </p>
+
+                  <p className="text-xs text-gray-500">Match</p>
+                </div>
+              </div>
+
+              <p className="text-lg font-semibold text-gray-700 mt-3">
+                {jobAnalysis.matchScore >= 80
+                  ? "Excellent Match"
+                  : jobAnalysis.matchScore >= 60
+                    ? "Good Match"
+                    : "Needs Improvement"}
+              </p>
+            </div>
+
+            {/* Matched Skills */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                ✅ Matched Skills
+              </h3>
+
+              <div className="flex flex-wrap gap-2">
+                {jobAnalysis.matchedSkills?.map((skill, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Missing Skills */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                ⚠️ Missing Skills
+              </h3>
+
+              <div className="flex flex-wrap gap-2">
+                {jobAnalysis.missingSkills?.map((skill, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Strengths */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                💪 Strengths
+              </h3>
+
+              <ul className="space-y-2">
+                {jobAnalysis.strengths?.map((strength, index) => (
+                  <li key={index} className="text-gray-600 text-sm flex gap-2">
+                    <span className="text-green-600">✓</span>
+                    {strength}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Recommendations */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                💡 Recommendations
+              </h3>
+
+              <ul className="space-y-2">
+                {jobAnalysis.recommendations?.map((recommendation, index) => (
+                  <li key={index} className="text-gray-600 text-sm flex gap-2">
+                    <span className="text-blue-600">→</span>
+                    {recommendation}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <button
+                onClick={() => setShowAnalysis(false)}
+                className="px-5 py-2 border rounded-lg text-gray-700"
+              >
+                Back
+              </button>
+
+              <button
                 onClick={submitApplication}
                 disabled={applyLoading}
-                className="px-5 py-2 bg-blue-600 text-white rounded-lg"
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg"
               >
                 {applyLoading ? "Applying..." : "Continue & Apply"}
               </button>
