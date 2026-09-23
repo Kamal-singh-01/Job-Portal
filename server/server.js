@@ -25,7 +25,8 @@ app.use(cors({
   origin: [
     'http://localhost:5173', 
     'http://localhost:3000',
-    'https://job-portal-client-alpha-one.vercel.app' 
+    'https://job-portal-client-alpha-one.vercel.app',
+    'https://job-portal-gzj7.vercel.app'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
