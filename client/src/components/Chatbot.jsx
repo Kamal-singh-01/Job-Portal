@@ -38,19 +38,16 @@ const Chatbot = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "https://job-portal-kappa-ten-41.vercel.app/api/chat",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            message: userMessage,
-            history: messages,
-          }),
+      const response = await fetch("http://localhost:5000/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          message: userMessage,
+          history: messages,
+        }),
+      });
 
       const data = await response.json();
 

@@ -8,8 +8,8 @@ import { jobsData as dummyJobs } from '../assets/assets';
 
 const ManageJob = () => {
   const navigate = useNavigate();
-  const [jobs, setJobs] = useState([]);       // ✅ always array
-  const [loading, setLoading] = useState(true); // ✅ loading state
+  const [jobs, setJobs] = useState([]);       // always array
+  const [loading, setLoading] = useState(true); // loading state
   const { backendUrl, companyToken } = useContext(AppContext);
 
   const fetchData = async () => {

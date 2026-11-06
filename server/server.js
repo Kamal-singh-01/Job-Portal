@@ -25,7 +25,10 @@ app.use(
     origin: [
       "http://localhost:5173",
       "http://localhost:3000",
+<<<<<<< Updated upstream
       "https://job-portal-gzj7.vercel.app",
+=======
+>>>>>>> Stashed changes
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -77,5 +80,5 @@ app.get("/", (req, res) => res.send("Api working"));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+  console.log(` Server running on port ${PORT}`);
 });

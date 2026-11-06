@@ -10,7 +10,7 @@ export const AppContextProvider = (props) => {
   const { user } = useUser();
   const { getToken } = useAuth();
 
-
+  
   // Search & Jobs
   const [searchFilter, setSearchFilter] = useState({ title: "", location: "" });
   const [isSearched, setIsSearched] = useState(false);
