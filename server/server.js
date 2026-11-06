@@ -25,10 +25,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "http://localhost:3000",
-<<<<<<< Updated upstream
       "https://job-portal-gzj7.vercel.app",
-=======
->>>>>>> Stashed changes
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
